@@ -15,13 +15,15 @@
 - Alle Datenzugriffe laufen über `/api/workspace`, geschützt durch den serverseitigen `getUser()`-Aufruf des Netlify-Identity-SDK.
 - Identitäten ohne Rolle `staff` oder `manager` erhalten 403. Nicht angemeldete Zugriffe erhalten 401.
 - Mitarbeitende erhalten nur eigene Einzelrapporte und Monatsstatus. Das Team sieht die gemeinsamen Aufgaben und aggregierte Aufgabenzeiten.
-- Nur die Hofleitung darf Aufgaben freigeben, Serien stoppen und fremde Monatsrapporte freigeben/öffnen. Selbstfreigabe von Monatsrapporten ist ausgeschlossen.
+- Nur die Hofleitung darf aktive Aufgaben ändern, Aufgaben freigeben, Teamprofile verwalten und fremde Monatsrapporte freigeben/öffnen/löschen. Mitarbeitende dürfen eigene offene Vorschläge bearbeiten/löschen. Selbstfreigabe von Monatsrapporten ist ausgeschlossen.
+- Änderungen und Stornierungen fremder Zeiten erfordern eine Begründung durch die Hofleitung. Geschlossene Monate sind auch für sie gesperrt, bis der Monat ausdrücklich geöffnet wurde.
+- Ein in der App gelöschtes Teamprofil wird vor jeder Datenoperation abgewiesen und beim nächsten Login nicht automatisch neu angelegt.
 - Mutationen prüfen den Request-Origin. Die API ist nicht für fremde Origins freigegeben.
 - Antworten enthalten `Cache-Control: private, no-store` und `Netlify-CDN-Cache-Control: no-store`. Kein Service Worker cached Personaldaten.
 - Der Browser speichert ausschliesslich die Spracheinstellung sowie die vom Identity-SDK verwaltete Sitzung. Arbeitsdaten werden nicht in localStorage geschrieben.
 - Auf dem Server wird pro Befehl die aktuelle Workspace-Zeile unter `FOR UPDATE` geladen. Prüfung, Änderung und Audit werden atomar committed. Versionsnummern schützen Korrekturen vor veralteten Formularen.
 - Serverseitige Validierung erlaubt nur definierte Aktionen und Felder. Ein UI-Schalter ist keine Berechtigungsprüfung.
-- Stornierungen sind logisch; Originaleinträge bleiben erhalten. Audit-Einträge enthalten Akteur, Aktion, Eingaben, generierte Datensatz-ID, Workspace-Version und Zeitstempel.
+- Stornierungen und Löschungen von Aufgaben/Profilen sind logisch. Audit-Einträge enthalten Akteur, Aktion, Eingaben, generierte Datensatz-ID, Workspace-Version, Zeitstempel und vorherige/neue Werte der betroffenen Entitäten.
 - Rolle entziehen/Account sperren erfolgt in Identity. Bestehende Audit- und Rapportdaten bleiben erhalten. Bei Entzug zusätzlich aktive Sitzungen gemäss Identity-Verfahren widerrufen; die Token-Lebensdauer berücksichtigen.
 
 ## Datenhaltung
@@ -43,3 +45,13 @@ npm run build
 Die automatisierten Domain-Prüfungen decken gemeinsame Personenstunden, Budgetüberschreitungen, Überschneidungen, fremde Datenänderungen, Monatsabschluss, Korrekturen, Aufgabenfreigaben, Wiederholungen, Datumsgrenzen und CSV-Formelschutz ab.
 
 Die authentifizierten Netlify-Integrationsabläufe sind lokal nicht vollständig prüfbar. Ein erfolgreicher Build und die Demo-Prüfung sind keine Behauptung eines bereits verifizierten produktiven Identity-/Datenbankbetriebs.
+
+## Automatische Übersetzung
+
+`netlify/lib/translation.ts` ruft den AI Gateway aus der authentifizierten Workspace-Function auf. Modell: `gpt-4o-mini`, gemäss [Netlify-Modellliste](https://docs.netlify.com/build/ai-gateway/overview/). `OPENAI_BASE_URL` und `OPENAI_API_KEY` werden serverseitig über `Netlify.env.get` gelesen; es gibt keine Schlüssel im Client. Netlify stellt diese Variablen bei aktivierter AI-Gateway-Unterstützung bereit.
+
+Im Projekt prüfen: AI-Funktionen verfügbar/aktiv, ausreichende Credits, Übersetzungen von DE nach ES und ES nach DE. Übermittelt werden nur Titel/Beschreibung, keine Nutzer-ID oder Stunden. Antworten werden gegen erwartete Felder und Längen geprüft. Ein Timeout nach zehn Sekunden oder eine fehlende Konfiguration lässt den Originaltext gespeichert und markiert die Übersetzung als offen. Ein erneuter Versuch ist über die Aufgabendetails möglich.
+
+Die Übersetzung findet nach der Berechtigungs- und Versionsprüfung innerhalb der bestehenden Workspace-Transaktion statt. Im kleinen Team kann ein Übersetzungsaufruf daher andere Änderungen kurz blockieren, maximal bis zum Timeout. Bei höherer Last sollte die Übersetzung über eine separate Job-Queue erfolgen.
+
+Deploy-Previews verwenden `npm run build:demo` und ausschliesslich flüchtige Beispieldaten. Automatische Übersetzungen werden dort nicht ausgeführt. Produktive Anmeldung und Übersetzung benötigen eigene Integrationstests mit einem autorisierten Konto.

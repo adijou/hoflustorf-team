@@ -3,6 +3,8 @@
   publish = "dist"
 [build.environment]
   NODE_VERSION = "24"
+[context.deploy-preview]
+  command = "npm run build:demo"
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"

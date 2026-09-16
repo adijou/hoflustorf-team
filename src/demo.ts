@@ -1,7 +1,7 @@
 import {addDays,today,weekStart,type State} from '../shared/domain';
 export function demoState():State {
  const date=today(),mon=weekStart(date);
- return {
+ const s:State={
   members:[{id:'demo-manager',name:'Hofleitung',role:'manager',weeklyMinutes:0},{id:'demo-a',name:'Teammitglied A',role:'staff',weeklyMinutes:2100},{id:'demo-b',name:'Teammitglied B',role:'staff',weeklyMinutes:2100}],
   tasks:[
    {id:'morning',titleDe:'Morgenrunde im Stall',titleEs:'Ronda de mañana en el establo',notes:'Füttern · Tränken prüfen · Misten · Pferde kontrollieren',category:'horses',budget:120,assignee:'demo-a',startDate:addDays(mon,-7),repeat:'daily',twoPeople:false,status:'active',createdBy:'demo-manager'},
@@ -13,4 +13,7 @@ export function demoState():State {
   entries:[{id:'sample-a',memberId:'demo-a',date,start:420,end:510,pause:0,minutes:90,taskId:'morning',note:'Beispielrapport',version:1,voided:false},{id:'sample-b',memberId:'demo-b',date,start:450,end:510,pause:0,minutes:60,taskId:'morning',note:'Beispiel: gemeinsam gearbeitet',version:1,voided:false}],
   completions:[{key:'morning:'+date,by:'demo-a',at:new Date().toISOString()}],reports:[]
  };
+ const descriptions:Record<string,string>={morning:'Dar de comer · Revisar bebederos · Limpiar el estiércol · Revisar los caballos',pasture:'Revisar las puertas, el agua y los pastos.',evening:'Dar de comer, revisar el agua y hacer la última ronda.',fence:'Revisar primero el material. Esta tarea de ejemplo está prevista para dos personas.',hay:'Propuesta del equipo.'};
+ for(const task of s.tasks){task.sourceLang='de';task.notesDe=task.notes;task.notesEs=descriptions[task.id]||'';task.translationStatus='ready';}
+ return s;
 }

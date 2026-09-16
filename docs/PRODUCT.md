@@ -17,7 +17,7 @@
 4. Jede Person trägt Datum, Beginn, Ende und tatsächlich bezogene Pause ein. Einsätze über Mitternacht werden am Tageswechsel geteilt. Ein Zeitraum wird nicht gleichzeitig mehreren Aufgaben zugerechnet.
 5. Monatsrapporte werden persönlich eingereicht. Neue Einträge, Korrekturen und Stornierungen in diesem Monat sind danach gesperrt.
 6. Die Hofleitung gibt den Rapport frei oder öffnet ihn mit Begründung zur Korrektur. Nach einer Korrektur ist eine erneute persönliche Einreichung nötig.
-7. Die Hofleitung kann Mitarbeitendenzeiten nicht heimlich überschreiben. Stornierungen bleiben mit Originaldaten und Audit-Historie erhalten.
+7. Die Hofleitung kann fremde Zeiten nach dem Öffnen des Monats mit Begründung korrigieren oder stornieren. Akteur, Zeitpunkt, Grund sowie vorheriger und neuer Wert werden protokolliert. Korrekturen werden beim betroffenen Eintrag angezeigt. Ein Monatsrapport muss anschliessend erneut persönlich eingereicht werden.
 
 ## Wiederholungen
 
@@ -25,8 +25,21 @@ Termine werden aus der Aufgabenvorlage für das gewählte Datum berechnet. Dadur
 
 ## Sprachen
 
-Die Bedienoberfläche ist Deutsch/Spanisch. Aufgaben haben getrennte optionale Titel für beide Sprachen. Fehlt eine Übersetzung, wird der vorhandene Titel angezeigt. Freitextbeschreibungen werden unverändert gespeichert; es findet keine automatische Übersetzung oder Weitergabe an einen KI-Dienst statt.
+Die Bedienoberfläche ist Deutsch/Spanisch. Aufgaben werden mit einem Titel und einer Beschreibung in der ausgewählten Eingabesprache erfasst. Beim Speichern ergänzt der Netlify AI Gateway die andere Sprache. Der Originaltext bleibt erhalten. Reine Planungsänderungen verwenden vorhandene Übersetzungen weiter; geänderte Texte werden neu übersetzt. Bei einem Ausfall wird das Original gespeichert und die Übersetzung sichtbar als offen markiert. Nur die beiden Aufgabentexte werden an den Übersetzungsdienst übermittelt.
+
+Alte Aufgaben funktionieren ohne Datenmigration weiter. Die Hofleitung kann über «Übersetzung ergänzen» oder beim Bearbeiten die fehlende Übersetzung erzeugen lassen. Die Vorschau ruft keinen Übersetzungsdienst auf.
 
 ## Nächster fachlicher Schritt
 
 Mit dem Team die Morgen- und Abendroutine, Weidegang, Misten, Fütterung und Zusatzarbeiten aufnehmen. Drei bis vier Wochen tatsächliche Zeiten vergleichen, dann realistische Budgets und sinnvolle Einzel-/Zweierzuständigkeiten festlegen. Personalplanung und die rechtliche Vertragsergänzung werden separat bestätigt.
+
+## Bearbeiten und Löschen
+
+- Hofleitung: alle Aufgaben und Vorschläge bearbeiten/löschen, Zeitrapporte korrigieren/stornieren, Monatsabschlüsse öffnen/löschen, Teamprofile bearbeiten/deaktivieren/wiederherstellen.
+- Mitarbeitende: eigene noch nicht freigegebene Vorschläge bearbeiten/löschen sowie eigene offene Zeiteinträge bearbeiten/stornieren.
+- Aufgaben werden logisch gelöscht und verschwinden aus der Planung; Titel und zugehörige Zeitrapporte bleiben erhalten. Neue Zeiten dürfen keiner gelöschten Aufgabe zugeordnet werden. Bereits vorhandene Einträge bleiben korrigierbar.
+- Aufgabenänderungen gelten für die ganze Serie. Bereits erfasste Stunden und die zugehörigen Titel werden nicht nachträglich umgeschrieben. Geplante Termine und Budgets folgen der aktuellen Vorlage; es gibt noch keine Historisierung früherer Planversionen.
+- Monatsrapport löschen entfernt ausschliesslich den Abschlussstatus. Die Einzelzeiten bleiben bestehen und können korrigiert werden.
+- Teamprofil löschen sperrt den App-Zugang auch bei noch gültiger Identity-Sitzung, hebt Zuteilungen auf und erhält historische Rapporte. Es löscht kein Netlify-Identity-Konto. Einladungen, Anmelde-E-Mail und Rollen bleiben in der Identity-Verwaltung. Eigene Profile können nicht gelöscht werden.
+- Wiederherstellung reaktiviert ein Profil bzw. eine Aufgabe. Aufgehobene Zuteilungen müssen neu gesetzt werden.
+- Versionsprüfungen verhindern das Überschreiben zwischenzeitlicher Änderungen; Monatsrapporte erhalten zusätzlich eine eindeutige ID, damit eine alte Freigabe nicht auf einen neu eingereichten Rapport angewendet werden kann.
