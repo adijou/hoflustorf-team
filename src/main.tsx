@@ -93,7 +93,7 @@ function minutes(v: number) {
   return `${Math.floor(v / 60)}:${String(v % 60).padStart(2, "0")}`;
 }
 function time(v: number) {
-  return minutes(v);
+  return minutes(v).padStart(5, "0");
 }
 function parseTime(v: FormDataEntryValue | null) {
   const s = String(v || "");
