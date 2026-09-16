@@ -43,3 +43,7 @@ Mit dem Team die Morgen- und Abendroutine, Weidegang, Misten, Fütterung und Zus
 - Teamprofil löschen sperrt den App-Zugang auch bei noch gültiger Identity-Sitzung, hebt Zuteilungen auf und erhält historische Rapporte. Es löscht kein Netlify-Identity-Konto. Einladungen, Anmelde-E-Mail und Rollen bleiben in der Identity-Verwaltung. Eigene Profile können nicht gelöscht werden.
 - Wiederherstellung reaktiviert ein Profil bzw. eine Aufgabe. Aufgehobene Zuteilungen müssen neu gesetzt werden.
 - Versionsprüfungen verhindern das Überschreiben zwischenzeitlicher Änderungen; Monatsrapporte erhalten zusätzlich eine eindeutige ID, damit eine alte Freigabe nicht auf einen neu eingereichten Rapport angewendet werden kann.
+
+## Navigation in der Planung
+
+Die Wochensicht öffnet ein Fenster von sieben Tagen ab heute (Datum in Europe/Zurich). Vorherige/nächste Woche verschieben es um genau sieben Tage. «Ab heute» setzt das Fenster zurück. Das Startdatum kann direkt gewählt werden. Die Tagesansicht hat eine eigene Datumauswahl mit Tagessprüngen und «Heute». Ein Klick auf einen Tag der Wochenübersicht öffnet diesen Tag. Kennzahlen in der Wochensicht beziehen sich auf alle sieben angezeigten Tage; die Tagesansicht behält ihren Vergleich mit dem Kalenderwochenpensum.
