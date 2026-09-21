@@ -6,4 +6,5 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 .deleted-toggle{display:flex;align-items:center;gap:9px;margin:0 0 22px;font-size:13px;color:var(--muted)}.deleted-toggle input{accent-color:var(--green);width:17px;height:17px}.template-row .row-actions{margin-left:auto}.proposal .row-actions{flex-shrink:0}.row-actions{flex-wrap:wrap;gap:14px}.dialog-actions+.dialog-actions{border-top:1px solid var(--line);padding-top:18px}dialog .notice{margin:14px 0}.report-member .row-actions{margin-left:auto}.field textarea{white-space:pre-wrap}
 
+.report-member>.team-member-profile{min-width:0;flex:1}.member-email{overflow-wrap:anywhere}.field>input[readonly]{background:var(--cream);color:var(--muted)}
 .date-control .jump-today{margin-left:8px;min-height:36px;padding:7px 10px;font-size:11px}.date-control{flex-wrap:wrap;row-gap:6px}.week-navigation-head{flex-wrap:wrap}

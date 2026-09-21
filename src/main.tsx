@@ -1518,8 +1518,11 @@ function App() {
                   .filter((m) => showDeleted || !m.deletedAt)
                   .map((m) => (
                     <div className="report-member" key={m.id}>
-                      <div>
+                      <div className="team-member-profile">
                         <strong>{m.name}</strong>
+                        <small className="member-email">
+                          {t.email}: {m.email || t.emailUnavailable}
+                        </small>
                         <small>
                           {label(m.role)} · {minutes(m.weeklyMinutes)}{" "}
                           {t.hoursShort}
@@ -1669,6 +1672,13 @@ function App() {
               }}
             >
               <div className="form-grid">
+                <Field label={t.loginEmail} wide>
+                  <input
+                    type="text"
+                    readOnly
+                    value={modal.member.email || t.emailUnavailable}
+                  />
+                </Field>
                 <Field label={t.memberName}>
                   <input
                     name="name"

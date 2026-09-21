@@ -2,7 +2,7 @@ import {addDays,today,weekStart,type State} from '../shared/domain';
 export function demoState():State {
  const date=today(),mon=weekStart(date);
  const s:State={
-  members:[{id:'demo-manager',name:'Hofleitung',role:'manager',weeklyMinutes:0},{id:'demo-a',name:'Teammitglied A',role:'staff',weeklyMinutes:2100},{id:'demo-b',name:'Teammitglied B',role:'staff',weeklyMinutes:2100}],
+  members:[{id:'demo-manager',email:'hofleitung@example.com',name:'Hofleitung',role:'manager',weeklyMinutes:0},{id:'demo-a',email:'team-a@example.com',name:'Teammitglied A',role:'staff',weeklyMinutes:2100},{id:'demo-b',email:'team-b@example.com',name:'Teammitglied B',role:'staff',weeklyMinutes:2100}],
   tasks:[
    {id:'morning',titleDe:'Morgenrunde im Stall',titleEs:'Ronda de mañana en el establo',notes:'Füttern · Tränken prüfen · Misten · Pferde kontrollieren',category:'horses',budget:120,assignee:'demo-a',startDate:addDays(mon,-7),repeat:'daily',twoPeople:false,status:'active',createdBy:'demo-manager'},
    {id:'pasture',titleDe:'Weidegang & Zäune kontrollieren',titleEs:'Salida al pasto y revisión de cercas',notes:'Tore, Wasser und Weideflächen kontrollieren.',category:'pasture',budget:45,assignee:'demo-b',startDate:addDays(mon,-7),repeat:'daily',twoPeople:false,status:'active',createdBy:'demo-manager'},
