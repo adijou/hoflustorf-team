@@ -1,5 +1,16 @@
 export const copy = {
   de: {
+    previousWeek: "Vorherige Woche",
+    nextWeek: "Nächste Woche",
+    previousDay: "Vorheriger Tag",
+    nextDay: "Nächster Tag",
+    fromToday: "Ab heute",
+    weekStartDate: "Beginn der Wochenansicht",
+    weekNavigation: "Woche auswählen",
+    dayNavigation: "Tag auswählen",
+    periodBudget: "Zeitbudgets für diese 7 Tage",
+    weekPlanningHint:
+      "Sieben Tage ab dem gewählten Datum. Mit den Pfeilen eine ganze Woche vor- oder zurückblättern.",
     editTask: "Aufgabe bearbeiten",
     delete: "Löschen",
     deleted: "Gelöscht",
@@ -200,6 +211,17 @@ export const copy = {
     dateRange: "Zeitraum",
   },
   es: {
+    previousWeek: "Semana anterior",
+    nextWeek: "Semana siguiente",
+    previousDay: "Día anterior",
+    nextDay: "Día siguiente",
+    fromToday: "Desde hoy",
+    weekStartDate: "Inicio de la vista semanal",
+    weekNavigation: "Elegir semana",
+    dayNavigation: "Elegir día",
+    periodBudget: "Tiempo previsto para estos 7 días",
+    weekPlanningHint:
+      "Siete días desde la fecha elegida. Las flechas avanzan o retroceden una semana completa.",
     editTask: "Editar tarea",
     delete: "Eliminar",
     deleted: "Eliminado",

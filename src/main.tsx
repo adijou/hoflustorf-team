@@ -314,6 +314,7 @@ function App() {
   const [demoActor, setDemoActor] = useState("demo-manager");
   const [tab, setTab] = useState<Tab>("today"),
     [selectedDate, setSelectedDate] = useState(today()),
+    [weekDate, setWeekDate] = useState(today()),
     [month, setMonth] = useState(today().slice(0, 7)),
     [filter, setFilter] = useState<"all" | "own">("all"),
     [modal, setModal] = useState<Modal | null>(null),
@@ -594,16 +595,29 @@ function App() {
       occurs(x, selectedDate) &&
       (filter === "all" || x.assignee === v.me.id || !x.assignee),
   );
-  const completed = currentTasks.filter((x) =>
-    v.completions.some((c) => c.key === keyFor(x.id, selectedDate)),
+  // A weekly planning window starts on its selected date; day browsing is independent.
+  const week = weekDate,
+    weekEnd = addDays(week, 6),
+    weekDates = Array.from({ length: 7 }, (_, i) => addDays(week, i));
+  const plannedTasks =
+    tab === "week"
+      ? weekDates.flatMap((date) =>
+          v.tasks
+            .filter((task) => occurs(task, date))
+            .map((task) => ({ task, date })),
+        )
+      : currentTasks.map((task) => ({ task, date: selectedDate }));
+  const completed = plannedTasks.filter(({ task, date }) =>
+    v.completions.some((c) => c.key === keyFor(task.id, date)),
   ).length;
-  const week = weekStart(selectedDate),
-    weekEnd = addDays(week, 6);
+  const hoursStart = tab === "week" ? week : weekStart(selectedDate),
+    hoursEnd = addDays(hoursStart, 6);
   const entries = v.entries.filter((e) => !e.voided),
     monthEntries = entries.filter((e) => e.date.startsWith(month));
   const ownWeek = entries
     .filter(
-      (e) => e.memberId === v.me.id && e.date >= week && e.date <= weekEnd,
+      (e) =>
+        e.memberId === v.me.id && e.date >= hoursStart && e.date <= hoursEnd,
     )
     .reduce((n, e) => n + e.minutes, 0);
   const proposals = v.tasks.filter(
@@ -657,34 +671,54 @@ function App() {
       </button>
     </div>
   );
-  const dateControl = (
-    <div className="date-control">
-      <button
-        className="icon-button"
-        aria-label={lang === "de" ? "Vorheriger Tag" : "Día anterior"}
-        onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+  const dateControl = (mode: "day" | "week") => {
+    const isWeek = mode === "week";
+    const date = isWeek ? weekDate : selectedDate;
+    const setDate = isWeek ? setWeekDate : setSelectedDate;
+    const step = isWeek ? 7 : 1;
+    const previous = isWeek ? t.previousWeek : t.previousDay;
+    const next = isWeek ? t.nextWeek : t.nextDay;
+    return (
+      <div
+        className="date-control"
+        role="group"
+        aria-label={isWeek ? t.weekNavigation : t.dayNavigation}
       >
-        <ChevronLeft size={18} />
-      </button>
-      <label>
-        <span className="sr-only">{t.date}</span>
-        <input
-          aria-label={t.date}
-          type="date"
-          required
-          value={selectedDate}
-          onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
-        />
-      </label>
-      <button
-        className="icon-button"
-        aria-label={lang === "de" ? "Nächster Tag" : "Día siguiente"}
-        onClick={() => setSelectedDate(addDays(selectedDate, 1))}
-      >
-        <ChevronRight size={18} />
-      </button>
-    </div>
-  );
+        <button
+          className="icon-button"
+          aria-label={previous}
+          title={previous}
+          onClick={() => setDate(addDays(date, -step))}
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <label>
+          <span className="sr-only">{isWeek ? t.weekStartDate : t.date}</span>
+          <input
+            aria-label={isWeek ? t.weekStartDate : t.date}
+            type="date"
+            required
+            value={date}
+            onChange={(e) => e.target.value && setDate(e.target.value)}
+          />
+        </label>
+        <button
+          className="icon-button"
+          aria-label={next}
+          title={next}
+          onClick={() => setDate(addDays(date, step))}
+        >
+          <ChevronRight size={18} />
+        </button>
+        <button
+          className="button ghost compact jump-today"
+          onClick={() => setDate(today())}
+        >
+          {isWeek ? t.fromToday : t.today}
+        </button>
+      </div>
+    );
+  };
   const download = (forMember?: string) => {
     const rows = monthEntries.filter(
       (e) => !forMember || e.memberId === forMember,
@@ -885,6 +919,8 @@ function App() {
                   aria-current={tab === x ? "page" : undefined}
                   className={tab === x ? "nav-item active" : "nav-item"}
                   onClick={() => {
+                    if (x === "week") setWeekDate(today());
+                    if (x === "today") setSelectedDate(today());
                     setTab(x);
                     setMenu(false);
                   }}
@@ -997,7 +1033,7 @@ function App() {
                   : tab === "hours"
                     ? t.monthHint
                     : tab === "week"
-                      ? t.weekHint
+                      ? t.weekPlanningHint
                       : tab === "tasks"
                         ? t.budgetNote
                         : tab === "people"
@@ -1013,7 +1049,7 @@ function App() {
               <div>
                 <span>{t.taskCount}</span>
                 <strong>
-                  {currentTasks.length.toString().padStart(2, "0")}
+                  {plannedTasks.length.toString().padStart(2, "0")}
                   <small>{t.planned}</small>
                 </strong>
               </div>
@@ -1021,14 +1057,25 @@ function App() {
                 <span>{t.completion}</span>
                 <strong>
                   {completed.toString().padStart(2, "0")}
-                  <small>/ {currentTasks.length}</small>
+                  <small>/ {plannedTasks.length}</small>
                 </strong>
               </div>
               <div>
-                <span>{isManager ? t.todayBudget : t.weekTarget}</span>
+                <span>
+                  {isManager
+                    ? tab === "week"
+                      ? t.periodBudget
+                      : t.todayBudget
+                    : t.weekTarget}
+                </span>
                 <strong>
                   {isManager
-                    ? minutes(currentTasks.reduce((n, x) => n + x.budget, 0))
+                    ? minutes(
+                        plannedTasks.reduce(
+                          (n, { task }) => n + task.budget,
+                          0,
+                        ),
+                      )
                     : minutes(ownWeek)}
                   <small>
                     {isManager
@@ -1059,7 +1106,7 @@ function App() {
                         {t.own}
                       </button>
                     </div>
-                    {dateControl}
+                    {dateControl("day")}
                   </div>
                 </div>
                 <div className="task-list">
@@ -1082,57 +1129,53 @@ function App() {
           )}
           {tab === "week" && (
             <section className="section">
-              <div className="section-head">
+              <div className="section-head week-navigation-head">
                 <h2>
-                  {t.weekOf} {niceDate(week, true)}
+                  {niceDate(week, true)} – {niceDate(weekEnd, true)}
                 </h2>
-                {dateControl}
+                {dateControl("week")}
               </div>
               <div className="week-grid">
-                {Array.from({ length: 7 }, (_, i) => addDays(week, i)).map(
-                  (day) => (
-                    <div
-                      className={
-                        "week-day" + (day === today() ? " current" : "")
-                      }
-                      key={day}
+                {weekDates.map((day) => (
+                  <div
+                    className={"week-day" + (day === today() ? " current" : "")}
+                    key={day}
+                  >
+                    <button
+                      className="day-heading"
+                      onClick={() => {
+                        setSelectedDate(day);
+                        setTab("today");
+                      }}
                     >
-                      <button
-                        className="day-heading"
-                        onClick={() => {
-                          setSelectedDate(day);
-                          setTab("today");
-                        }}
-                      >
-                        {niceDate(day, true)}
-                        <ArrowUpRight size={15} />
-                      </button>
-                      {v.tasks
-                        .filter((x) => occurs(x, day))
-                        .map((task) => (
-                          <button
-                            className="week-task"
-                            key={task.id}
-                            onClick={() =>
-                              setModal({ kind: "task", task, date: day })
-                            }
-                          >
-                            <span className={"dot " + task.category} />
-                            <strong>{title(task)}</strong>
-                            <small>{memberName(task.assignee)}</small>
-                            <span>
-                              {task.budget
-                                ? minutes(task.budget) + " " + t.hoursShort
-                                : "—"}
-                              {v.completions.some(
-                                (c) => c.key === keyFor(task.id, day),
-                              ) && <Check size={14} />}
-                            </span>
-                          </button>
-                        ))}
-                    </div>
-                  ),
-                )}
+                      {niceDate(day, true)}
+                      <ArrowUpRight size={15} />
+                    </button>
+                    {v.tasks
+                      .filter((x) => occurs(x, day))
+                      .map((task) => (
+                        <button
+                          className="week-task"
+                          key={task.id}
+                          onClick={() =>
+                            setModal({ kind: "task", task, date: day })
+                          }
+                        >
+                          <span className={"dot " + task.category} />
+                          <strong>{title(task)}</strong>
+                          <small>{memberName(task.assignee)}</small>
+                          <span>
+                            {task.budget
+                              ? minutes(task.budget) + " " + t.hoursShort
+                              : "—"}
+                            {v.completions.some(
+                              (c) => c.key === keyFor(task.id, day),
+                            ) && <Check size={14} />}
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                ))}
               </div>
             </section>
           )}
@@ -1602,7 +1645,7 @@ function App() {
                 view={v}
                 lang={lang}
                 task={modal.task}
-                date={selectedDate}
+                date={tab === "week" ? weekDate : selectedDate}
                 busy={busy}
                 submit={run}
                 onClose={() => setModal(null)}
