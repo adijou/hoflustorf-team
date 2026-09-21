@@ -15,6 +15,8 @@
 - Alle Datenzugriffe laufen über `/api/workspace`, geschützt durch den serverseitigen `getUser()`-Aufruf des Netlify-Identity-SDK.
 - Identitäten ohne Rolle `staff` oder `manager` erhalten 403. Nicht angemeldete Zugriffe erhalten 401.
 - Mitarbeitende erhalten nur eigene Einzelrapporte und Monatsstatus. Das Team sieht die gemeinsamen Aufgaben und aggregierte Aufgabenzeiten.
+- Die Hofleitung sieht in Teamliste und Profilbearbeitung die aktuelle Anmelde-E-Mail. Die Function ergänzt sie über `admin.getUser(member.id)` ausschliesslich in autorisierten Manager-Antworten. Bestehende Profile werden damit ohne erneute Anmeldung zuordenbar; Namen und Pensen bleiben erhalten.
+- E-Mail-Adressen werden nicht zusätzlich in Workspace oder Audit gespeichert. Mitarbeiter-Antworten enthalten keine E-Mail-Felder. Fehlende Identity-Konten oder Abfragefehler zeigen «Derzeit nicht verfügbar» und verhindern keine Namensänderungen. Anmeldeadressen bleiben ausschliesslich in Identity änderbar.
 - Nur die Hofleitung darf aktive Aufgaben ändern, Aufgaben freigeben, Teamprofile verwalten und fremde Monatsrapporte freigeben/öffnen/löschen. Mitarbeitende dürfen eigene offene Vorschläge bearbeiten/löschen. Selbstfreigabe von Monatsrapporten ist ausgeschlossen.
 - Änderungen und Stornierungen fremder Zeiten erfordern eine Begründung durch die Hofleitung. Geschlossene Monate sind auch für sie gesperrt, bis der Monat ausdrücklich geöffnet wurde.
 - Ein in der App gelöschtes Teamprofil wird vor jeder Datenoperation abgewiesen und beim nächsten Login nicht automatisch neu angelegt.

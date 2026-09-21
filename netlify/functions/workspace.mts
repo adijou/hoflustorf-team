@@ -1,6 +1,7 @@
-import { getUser, verifyRequestOrigin } from "@netlify/identity";
+import { admin, getUser, verifyRequestOrigin } from "@netlify/identity";
 import { getDatabase } from "@netlify/database";
 import { translateTask } from "../lib/translation.ts";
+import { withMemberEmails } from "../lib/member-emails.ts";
 import type { Config } from "@netlify/functions";
 import {
   applyAction,
@@ -145,7 +146,10 @@ export default async (req: Request) => {
         );
       }
       await client.query("COMMIT");
-      return json({ ...viewFor(s, user.id), warnings });
+      const view = await withMemberEmails(viewFor(s, user.id), (id) =>
+        admin.getUser(id),
+      );
+      return json({ ...view, warnings });
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;

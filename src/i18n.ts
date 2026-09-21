@@ -25,6 +25,8 @@ export const copy = {
     deleteEntryHint:
       "Der Zeiteintrag wird storniert und zählt nicht mehr zur Arbeitszeit. Der Originaleintrag bleibt im Änderungsprotokoll erhalten.",
     editMember: "Teamprofil bearbeiten",
+    loginEmail: "Anmelde-E-Mail (nur Anzeige)",
+    emailUnavailable: "Derzeit nicht verfügbar",
     memberName: "Name",
     weeklyHours: "Wochenpensum (Stunden)",
     peopleHint:
@@ -223,6 +225,8 @@ export const copy = {
     deleteEntryHint:
       "Se anula el registro y deja de contar como tiempo trabajado. El original se conserva en el historial de cambios.",
     editMember: "Editar perfil",
+    loginEmail: "Correo de acceso (solo lectura)",
+    emailUnavailable: "No disponible en este momento",
     memberName: "Nombre",
     weeklyHours: "Jornada semanal (horas)",
     peopleHint:

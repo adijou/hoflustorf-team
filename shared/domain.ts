@@ -5,6 +5,8 @@ export type Repeat = "once" | "daily" | "weekly" | "monthly";
 export interface Member {
   id: string;
   name: string;
+  // Read-only Identity address, populated in manager responses (or demo data).
+  email?: string;
   role: Role;
   weeklyMinutes: number;
   version?: number;
@@ -158,9 +160,14 @@ export function taskTotals(s: State) {
 export function viewFor(s: State, id: string): View {
   const me = s.members.find((m) => m.id === id);
   if (!me || me.deletedAt) throw new DomainError("forbidden");
+  const members = s.members.map((member) => {
+    const { email, ...profile } = member;
+    return me.role === "manager" ? { ...member } : profile;
+  });
   return {
     ...s,
-    me,
+    members,
+    me: members.find((m) => m.id === id)!,
     entries:
       me.role === "manager"
         ? s.entries
