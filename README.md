@@ -8,10 +8,10 @@ Erster implementierter Entwurf. Der Quellcode enthält ausschliesslich fiktive B
 
 ### Enthalten
 
-- Tages- und Wochenplanung mit Einzelzuständigkeit, Zweierarbeit und gemeinsamem Aufgabenbudget.
+- Tages- und Wochenplanung mit gemeinsamem Aufgabenpool, Personenbedarf und gemeinsamem Aufgabenbudget.
 - Einmalige, tägliche, wöchentliche und monatliche Aufgaben; alle Felder bearbeiten, Aufgaben löschen und wiederherstellen. Monatsende wird bei kurzen Monaten berücksichtigt.
 - Ein Titelfeld und ein Beschreibungsfeld. Die andere Sprache wird serverseitig beim Speichern übersetzt; bei Ausfällen bleibt das Original mit sichtbarem Übersetzungsstatus erhalten.
-- Mitarbeitende schlagen neue Aufgaben vor; die Hofleitung plant sie ein.
+- Alle Teammitglieder legen Arbeiten ohne Freigabeschritt an. Aufgaben haben keine persönliche Zuteilung; alle können eigene Stunden darauf buchen. Bestehende Vorschläge und Zuteilungen werden automatisch umgestellt.
 - Persönliche Rapporte mit Beginn, Ende, Pause, Aufgabe und Bemerkung; ungeplante notwendige Arbeit kann jederzeit ohne Aufgabe erfasst werden.
 - Jede Person führt ihr eigenes Zeitkonto. Standard für Mitarbeitende: 35 Stunden pro Woche.
 - Gemeinsame Aufgabenzeit addiert sämtliche beteiligten Personen. Budgetüberschreitungen kürzen keine Arbeitszeit.

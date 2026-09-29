@@ -17,7 +17,7 @@
 - Mitarbeitende erhalten nur eigene Einzelrapporte und Monatsstatus. Das Team sieht die gemeinsamen Aufgaben und aggregierte Aufgabenzeiten.
 - Die Hofleitung sieht in Teamliste und Profilbearbeitung die aktuelle Anmelde-E-Mail. Die Function ergänzt sie über `admin.getUser(member.id)` ausschliesslich in autorisierten Manager-Antworten. Bestehende Profile werden damit ohne erneute Anmeldung zuordenbar; Namen und Pensen bleiben erhalten.
 - E-Mail-Adressen werden nicht zusätzlich in Workspace oder Audit gespeichert. Mitarbeiter-Antworten enthalten keine E-Mail-Felder. Fehlende Identity-Konten oder Abfragefehler zeigen «Derzeit nicht verfügbar» und verhindern keine Namensänderungen. Anmeldeadressen bleiben ausschliesslich in Identity änderbar.
-- Nur die Hofleitung darf aktive Aufgaben ändern, Aufgaben freigeben, Teamprofile verwalten und fremde Monatsrapporte freigeben/öffnen/löschen. Mitarbeitende dürfen eigene offene Vorschläge bearbeiten/löschen. Selbstfreigabe von Monatsrapporten ist ausgeschlossen.
+- Alle aktiven Teammitglieder dürfen sofort aktive, gemeinsame Aufgaben anlegen. Mitarbeitende dürfen ihre eigenen Aufgaben bearbeiten/löschen; die Hofleitung verwaltet alle Aufgaben, Teamprofile und fremde Monatsrapporte. Selbstfreigabe von Monatsrapporten ist ausgeschlossen.
 - Änderungen und Stornierungen fremder Zeiten erfordern eine Begründung durch die Hofleitung. Geschlossene Monate sind auch für sie gesperrt, bis der Monat ausdrücklich geöffnet wurde.
 - Ein in der App gelöschtes Teamprofil wird vor jeder Datenoperation abgewiesen und beim nächsten Login nicht automatisch neu angelegt.
 - Mutationen prüfen den Request-Origin. Die API ist nicht für fremde Origins freigegeben.
@@ -57,3 +57,7 @@ Im Projekt prüfen: AI-Funktionen verfügbar/aktiv, ausreichende Credits, Übers
 Die Übersetzung findet nach der Berechtigungs- und Versionsprüfung innerhalb der bestehenden Workspace-Transaktion statt. Im kleinen Team kann ein Übersetzungsaufruf daher andere Änderungen kurz blockieren, maximal bis zum Timeout. Bei höherer Last sollte die Übersetzung über eine separate Job-Queue erfolgen.
 
 Deploy-Previews verwenden `npm run build:demo` und ausschliesslich flüchtige Beispieldaten. Automatische Übersetzungen werden dort nicht ausgeführt. Produktive Anmeldung und Übersetzung benötigen eigene Integrationstests mit einem autorisierten Konto.
+
+## Gemeinsame Aufgaben ohne Freigabe
+
+Beim ersten autorisierten Workspace-Zugriff werden offene Vorschläge aktiviert und alte persönliche Zuteilungen entfernt. Diese idempotente Umstellung läuft unter derselben Transaktionssperre wie die übrigen Änderungen und wird als `task.shared-migration` mit betroffenen Aufgaben-IDs protokolliert. Aufgaben-Versionen werden erhöht. Gelöschte Aufgaben, Enddaten, Zeitrapporte, Monatsabschlüsse und gemeinsame Budgets bleiben erhalten. Die alten Datenfelder `assignee` und `status` bleiben für die Client-Kompatibilität bestehen; neue und bearbeitete Aufgaben werden serverseitig stets mit leerer Zuteilung und Status `active` gespeichert. Ein altes Formular kann diese Regel nicht überschreiben.

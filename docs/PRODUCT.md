@@ -11,9 +11,9 @@
 
 ## Ablauf
 
-1. Hofleitung erstellt Aufgaben mit Termin, Wiederholung, Verantwortlichkeit, Personenbedarf und Minutenbudget.
-2. Mitarbeitende können Aufgaben vorschlagen. Diese erscheinen vor Freigabe nicht im regulären Einsatzplan.
-3. Notwendige ungeplante Arbeit kann ohne freigegebene Aufgabe mit Beschreibung rapportiert werden.
+1. Alle Teammitglieder erstellen Aufgaben mit Termin, Wiederholung, Personenbedarf und gemeinsamem Minutenbudget. Jede Aufgabe ist sofort aktiv und für das gesamte Team verfügbar; eine Freigabe durch die Hofleitung entfällt.
+2. Aufgaben haben keine persönliche Zuteilung. Jede Person kann zu den geplanten Terminen ihre eigenen Stunden darauf buchen. Offene Vorschläge und frühere Zuteilungen werden beim nächsten autorisierten Zugriff automatisch auf dieses Modell umgestellt.
+3. Notwendige ungeplante Arbeit kann ohne angelegte Aufgabe mit Beschreibung rapportiert werden.
 4. Jede Person trägt Datum, Beginn, Ende und tatsächlich bezogene Pause ein. Einsätze über Mitternacht werden am Tageswechsel geteilt. Ein Zeitraum wird nicht gleichzeitig mehreren Aufgaben zugerechnet.
 5. Monatsrapporte werden persönlich eingereicht. Neue Einträge, Korrekturen und Stornierungen in diesem Monat sind danach gesperrt.
 6. Die Hofleitung gibt den Rapport frei oder öffnet ihn mit Begründung zur Korrektur. Nach einer Korrektur ist eine erneute persönliche Einreichung nötig.
@@ -31,17 +31,17 @@ Alte Aufgaben funktionieren ohne Datenmigration weiter. Die Hofleitung kann übe
 
 ## Nächster fachlicher Schritt
 
-Mit dem Team die Morgen- und Abendroutine, Weidegang, Misten, Fütterung und Zusatzarbeiten aufnehmen. Drei bis vier Wochen tatsächliche Zeiten vergleichen, dann realistische Budgets und sinnvolle Einzel-/Zweierzuständigkeiten festlegen. Personalplanung und die rechtliche Vertragsergänzung werden separat bestätigt.
+Mit dem Team die Morgen- und Abendroutine, Weidegang, Misten, Fütterung und Zusatzarbeiten aufnehmen. Drei bis vier Wochen tatsächliche Zeiten vergleichen, dann realistische Budgets und sinnvollen Personenbedarf festlegen. Personalplanung und die rechtliche Vertragsergänzung werden separat bestätigt.
 
 ## Bearbeiten und Löschen
 
-- Hofleitung: alle Aufgaben und Vorschläge bearbeiten/löschen, Zeitrapporte korrigieren/stornieren, Monatsabschlüsse öffnen/löschen, Teamprofile bearbeiten/deaktivieren/wiederherstellen.
-- Mitarbeitende: eigene noch nicht freigegebene Vorschläge bearbeiten/löschen sowie eigene offene Zeiteinträge bearbeiten/stornieren.
+- Hofleitung: alle Aufgaben bearbeiten/löschen, Zeitrapporte korrigieren/stornieren, Monatsabschlüsse öffnen/löschen, Teamprofile bearbeiten/deaktivieren/wiederherstellen.
+- Mitarbeitende: eigene Aufgaben bearbeiten/löschen sowie eigene offene Zeiteinträge bearbeiten/stornieren.
 - Aufgaben werden logisch gelöscht und verschwinden aus der Planung; Titel und zugehörige Zeitrapporte bleiben erhalten. Neue Zeiten dürfen keiner gelöschten Aufgabe zugeordnet werden. Bereits vorhandene Einträge bleiben korrigierbar.
 - Aufgabenänderungen gelten für die ganze Serie. Bereits erfasste Stunden und die zugehörigen Titel werden nicht nachträglich umgeschrieben. Geplante Termine und Budgets folgen der aktuellen Vorlage; es gibt noch keine Historisierung früherer Planversionen.
 - Monatsrapport löschen entfernt ausschliesslich den Abschlussstatus. Die Einzelzeiten bleiben bestehen und können korrigiert werden.
-- Teamprofil löschen sperrt den App-Zugang auch bei noch gültiger Identity-Sitzung, hebt Zuteilungen auf und erhält historische Rapporte. Es löscht kein Netlify-Identity-Konto. Einladungen, Anmelde-E-Mail und Rollen bleiben in der Identity-Verwaltung. Eigene Profile können nicht gelöscht werden.
-- Wiederherstellung reaktiviert ein Profil bzw. eine Aufgabe. Aufgehobene Zuteilungen müssen neu gesetzt werden.
+- Teamprofil löschen sperrt den App-Zugang auch bei noch gültiger Identity-Sitzung und erhält historische Rapporte. Es löscht kein Netlify-Identity-Konto. Einladungen, Anmelde-E-Mail und Rollen bleiben in der Identity-Verwaltung. Eigene Profile können nicht gelöscht werden.
+- Wiederherstellung reaktiviert ein Profil bzw. eine Aufgabe.
 - Versionsprüfungen verhindern das Überschreiben zwischenzeitlicher Änderungen; Monatsrapporte erhalten zusätzlich eine eindeutige ID, damit eine alte Freigabe nicht auf einen neu eingereichten Rapport angewendet werden kann.
 
 ## Navigation in der Planung

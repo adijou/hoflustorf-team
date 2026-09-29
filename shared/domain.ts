@@ -19,6 +19,7 @@ export interface Task {
   notes: string;
   category: Category;
   budget: number;
+  // Legacy wire fields: new work is always shared (empty assignee, active status).
   assignee: string;
   startDate: string;
   endDate?: string;
@@ -116,6 +117,19 @@ export function weekStart(s: string) {
   return addDays(s, -((day + 6) % 7));
 }
 export const keyFor = (id: string, date: string) => `${id}:${date}`;
+// One-time, transactional upgrade of persisted tasks. Preserve dates, deletion
+// flags and all recorded work; bump versions so stale editors cannot overwrite it.
+export function migrateSharedTasks(s: State): string[] {
+  const changed: string[] = [];
+  for (const task of s.tasks) {
+    if (task.assignee === "" && task.status === "active") continue;
+    task.assignee = "";
+    task.status = "active";
+    task.version = (task.version ?? 1) + 1;
+    changed.push(task.id);
+  }
+  return changed;
+}
 export function occurs(t: Task, date: string) {
   if (
     t.deletedAt ||
@@ -212,10 +226,7 @@ function checkVersion(
   if (p.version !== (entity.version ?? 1)) throw new DomainError("conflict");
 }
 function editableTask(m: Member, t: Task) {
-  if (
-    m.role !== "manager" &&
-    !(t.status === "proposed" && t.createdBy === m.id)
-  )
+  if (m.role !== "manager" && t.createdBy !== m.id)
     throw new DomainError("forbidden");
 }
 function snapshotTitles(s: State, t: Task) {
@@ -278,12 +289,10 @@ export function applyAction(
       )
         throw new DomainError("invalidDate");
       const category = string(p, "category") as Category,
-        repeat = string(p, "repeat") as Repeat,
-        assignee = string(p, "assignee", 100);
+        repeat = string(p, "repeat") as Repeat;
       if (
         !["horses", "pasture", "maintenance", "other"].includes(category) ||
-        !["once", "daily", "weekly", "monthly"].includes(repeat) ||
-        (assignee && !s.members.some((x) => x.id === assignee && !x.deletedAt))
+        !["once", "daily", "weekly", "monthly"].includes(repeat)
       )
         throw new DomainError("invalidInput");
       if (typeof p.twoPeople !== "boolean")
@@ -304,13 +313,12 @@ export function applyAction(
         translationStatus: "pending",
         category,
         budget: integer(p, "budget", 0, 2880),
-        assignee,
+        assignee: "",
         startDate,
         endDate,
         repeat,
         twoPeople: p.twoPeople,
-        status:
-          existing?.status || (m.role === "manager" ? "active" : "proposed"),
+        status: "active",
         createdBy: existing?.createdBy || actorId,
         version: (existing?.version ?? (existing ? 1 : 0)) + 1,
       };
@@ -327,20 +335,18 @@ export function applyAction(
       else s.tasks.push(task);
       break;
     }
-    case "task.approve":
     case "task.pause":
     case "task.translate":
     case "task.delete":
     case "task.restore": {
       const t = s.tasks.find((x) => x.id === p.id);
       if (!t) throw new DomainError("notFound");
-      if (["task.approve", "task.pause", "task.restore"].includes(action.type))
+      if (["task.pause", "task.restore"].includes(action.type))
         requireManager(m);
       else editableTask(m, t);
       checkVersion(t, p);
       if (t.deletedAt && action.type !== "task.restore")
         throw new DomainError("notFound");
-      if (action.type === "task.approve") t.status = "active";
       if (action.type === "task.pause") t.endDate = currentDate;
       if (action.type === "task.translate") t.translationStatus = "pending";
       if (action.type === "task.delete") {
@@ -369,11 +375,6 @@ export function applyAction(
         if (target.id === actorId) throw new DomainError("selfDelete");
         if (!string(p, "reason", 500)) throw new DomainError("noteRequired");
         target.deletedAt = now;
-        for (const t of s.tasks)
-          if (t.assignee === target.id) {
-            t.assignee = "";
-            t.version = (t.version ?? 1) + 1;
-          }
       } else delete target.deletedAt;
       target.version = (target.version ?? 1) + 1;
       break;

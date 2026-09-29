@@ -5,6 +5,7 @@ import { withMemberEmails } from "../lib/member-emails.ts";
 import type { Config } from "@netlify/functions";
 import {
   applyAction,
+  migrateSharedTasks,
   viewFor,
   DomainError,
   type State,
@@ -69,6 +70,7 @@ export default async (req: Request) => {
         profileChanged = false;
       if (member?.deletedAt) throw new DomainError("forbidden");
       const before = structuredClone(s);
+      const sharedTaskIds = migrateSharedTasks(s);
       const warnings: string[] = [];
       if (!member) {
         member = {
@@ -86,14 +88,27 @@ export default async (req: Request) => {
         member.version = (member.version ?? 1) + 1;
         profileChanged = true;
       }
-      if (profileChanged) {
+      if (profileChanged || sharedTaskIds.length) {
         await client.query(
           "UPDATE team_workspace SET data=$1, version=version+1, updated_at=now() WHERE id=$2",
           [JSON.stringify(s), "hoflustorf"],
         );
+      }
+      if (profileChanged) {
         await client.query(
           "INSERT INTO team_audit(actor_id,action,payload,workspace_version) SELECT $1,$2,$3,version FROM team_workspace WHERE id=$4",
           [user.id, "member.sync", JSON.stringify(member), "hoflustorf"],
+        );
+      }
+      if (sharedTaskIds.length) {
+        await client.query(
+          "INSERT INTO team_audit(actor_id,action,payload,workspace_version) SELECT $1,$2,$3,version FROM team_workspace WHERE id=$4",
+          [
+            user.id,
+            "task.shared-migration",
+            JSON.stringify({ taskIds: sharedTaskIds }),
+            "hoflustorf",
+          ],
         );
       }
       if (action) {
