@@ -316,7 +316,6 @@ function App() {
     [selectedDate, setSelectedDate] = useState(today()),
     [weekDate, setWeekDate] = useState(today()),
     [month, setMonth] = useState(today().slice(0, 7)),
-    [filter, setFilter] = useState<"all" | "own">("all"),
     [modal, setModal] = useState<Modal | null>(null),
     [menu, setMenu] = useState(false);
   const title = (x: Task) => taskTitle(x, lang);
@@ -590,11 +589,7 @@ function App() {
     members = v.members;
   const memberName = (id: string) =>
     members.find((m) => m.id === id)?.name || t.unassigned;
-  const currentTasks = v.tasks.filter(
-    (x) =>
-      occurs(x, selectedDate) &&
-      (filter === "all" || x.assignee === v.me.id || !x.assignee),
-  );
+  const currentTasks = v.tasks.filter((x) => occurs(x, selectedDate));
   // A weekly planning window starts on its selected date; day browsing is independent.
   const week = weekDate,
     weekEnd = addDays(week, 6),
@@ -620,11 +615,7 @@ function App() {
         e.memberId === v.me.id && e.date >= hoursStart && e.date <= hoursEnd,
     )
     .reduce((n, e) => n + e.minutes, 0);
-  const proposals = v.tasks.filter(
-    (x) => x.status === "proposed" && !x.deletedAt,
-  );
-  const canEditTask = (task: Task) =>
-    isManager || (task.status === "proposed" && task.createdBy === v.me.id);
+  const canEditTask = (task: Task) => isManager || task.createdBy === v.me.id;
   const reportPayload = (memberId: string) => {
     const r = reportFor(v, memberId, month);
     return {
@@ -790,7 +781,7 @@ function App() {
           </span>
           <strong>{title(task)}</strong>
           <span className="task-meta">
-            {memberName(task.assignee)} <span>·</span>{" "}
+            {t.sharedTask} <span>·</span>{" "}
             {task.twoPeople ? t.twoPeople : t.onePerson}
           </span>
         </button>
@@ -927,9 +918,6 @@ function App() {
                 >
                   <Icon size={19} />
                   {x === "reports" ? t.overview : t[x]}
-                  {x === "tasks" && proposals.length > 0 && (
-                    <span className="nav-count">{proposals.length}</span>
-                  )}
                 </button>
               );
             })}
@@ -1091,23 +1079,7 @@ function App() {
               <section className="section">
                 <div className="section-head">
                   <h2>{t.today}</h2>
-                  <div className="section-tools">
-                    <div className="segmented">
-                      <button
-                        className={filter === "all" ? "active" : ""}
-                        onClick={() => setFilter("all")}
-                      >
-                        {t.all}
-                      </button>
-                      <button
-                        className={filter === "own" ? "active" : ""}
-                        onClick={() => setFilter("own")}
-                      >
-                        {t.own}
-                      </button>
-                    </div>
-                    {dateControl("day")}
-                  </div>
+                  <div className="section-tools">{dateControl("day")}</div>
                 </div>
                 <div className="task-list">
                   {currentTasks.map((x) => taskRow(x))}
@@ -1163,7 +1135,7 @@ function App() {
                         >
                           <span className={"dot " + task.category} />
                           <strong>{title(task)}</strong>
-                          <small>{memberName(task.assignee)}</small>
+                          <small>{t.sharedTask}</small>
                           <span>
                             {task.budget
                               ? minutes(task.budget) + " " + t.hoursShort
@@ -1189,72 +1161,6 @@ function App() {
                 />
                 {t.showDeleted}
               </label>
-              {proposals.length > 0 && (
-                <section className="section">
-                  <div className="section-head">
-                    <h2>
-                      {t.proposals}{" "}
-                      <span className="badge">{proposals.length}</span>
-                    </h2>
-                  </div>
-                  <div className="proposal-list">
-                    {proposals.map((x) => (
-                      <div className="proposal" key={x.id}>
-                        <div>
-                          <strong>{title(x)}</strong>
-                          <p>{taskNotes(x, lang)}</p>
-                          <small>
-                            {memberName(x.createdBy)} · {label(x.repeat)} ·{" "}
-                            {minutes(x.budget)} {t.hoursShort}
-                          </small>
-                        </div>
-                        {canEditTask(x) && (
-                          <div className="row-actions">
-                            <button
-                              className="text-button"
-                              onClick={() =>
-                                setModal({ kind: "newTask", task: x })
-                              }
-                            >
-                              {t.edit}
-                            </button>
-                            <button
-                              className="text-button danger"
-                              onClick={() =>
-                                setModal({
-                                  kind: "reason",
-                                  action: "task.delete",
-                                  payload: {
-                                    id: x.id,
-                                    version: x.version ?? 1,
-                                  },
-                                })
-                              }
-                            >
-                              {t.delete}
-                            </button>
-                          </div>
-                        )}
-                        {isManager && (
-                          <button
-                            className="button ghost"
-                            disabled={busy}
-                            onClick={() =>
-                              run({
-                                type: "task.approve",
-                                payload: { id: x.id, version: x.version ?? 1 },
-                              })
-                            }
-                          >
-                            {t.approveTask}
-                            <Check size={15} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
               <section className="section">
                 <div className="section-head">
                   <h2>{t.activeTasks}</h2>
@@ -1283,7 +1189,7 @@ function App() {
                             {title(x)}
                           </button>
                           <small>
-                            {label(x.category)} · {memberName(x.assignee)}
+                            {label(x.category)} · {t.sharedTask}
                             {x.translationStatus === "pending" &&
                               " · " + t.translationPendingBadge}
                           </small>
@@ -1642,7 +1548,6 @@ function App() {
           {modal.kind === "newTask" && (
             <>
               <TaskForm
-                view={v}
                 lang={lang}
                 task={modal.task}
                 date={tab === "week" ? weekDate : selectedDate}
@@ -1745,8 +1650,8 @@ function App() {
                 )}
               <dl>
                 <div>
-                  <dt>{t.assignee}</dt>
-                  <dd>{memberName(modal.task.assignee)}</dd>
+                  <dt>{t.taskAccess}</dt>
+                  <dd>{t.sharedTask}</dd>
                 </div>
                 <div>
                   <dt>{t.repeat}</dt>

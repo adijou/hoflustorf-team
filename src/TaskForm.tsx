@@ -6,7 +6,6 @@ import {
   type Action,
   type Lang,
   type Task,
-  type View,
 } from "../shared/domain";
 import { copy } from "./i18n";
 function Field({
@@ -26,7 +25,6 @@ function Field({
   );
 }
 export function TaskForm({
-  view,
   lang,
   task,
   date,
@@ -34,7 +32,6 @@ export function TaskForm({
   submit,
   onClose,
 }: {
-  view: View;
   lang: Lang;
   task?: Task;
   date: string;
@@ -59,7 +56,6 @@ export function TaskForm({
         inputLang: source,
         notes: String(f.get("notes") || ""),
         category: String(f.get("category")),
-        assignee: String(f.get("assignee") || ""),
         startDate: String(f.get("startDate")),
         endDate: String(f.get("endDate") || ""),
         repeat: String(f.get("repeat")),
@@ -70,7 +66,7 @@ export function TaskForm({
   };
   return (
     <form onSubmit={onSubmit}>
-      {view.me.role !== "manager" && <p className="notice">{t.newTaskHint}</p>}
+      <p className="notice">{t.newTaskHint}</p>
       <div className="form-grid">
         <Field label={t.taskTitle} wide>
           <input
@@ -107,18 +103,6 @@ export function TaskForm({
             rows={3}
             defaultValue={task?.notes || ""}
           />
-        </Field>
-        <Field label={t.assignee}>
-          <select name="assignee" defaultValue={task?.assignee || ""}>
-            <option value="">{t.unassigned}</option>
-            {view.members
-              .filter((m) => !m.deletedAt)
-              .map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-          </select>
         </Field>
         <Field label={t.repeat}>
           <select name="repeat" defaultValue={task?.repeat || "once"}>

@@ -8,6 +8,7 @@ import {
   duration,
   csv,
   weekStart,
+  migrateSharedTasks,
   type State,
   type Action,
 } from "../shared/domain.ts";
@@ -27,7 +28,7 @@ function state(): State {
       notes: "",
       category: "horses",
       budget: 60,
-      assignee: "a",
+      assignee: "",
       startDate: "2026-09-01",
       repeat: "daily",
       twoPeople: false,
@@ -200,7 +201,7 @@ test("a manager cannot approve their own report", () => {
     /selfApproval/,
   );
 });
-test("staff tasks are proposals, cannot escalate permissions, and need manager approval", () => {
+test("staff create shared work immediately, legacy assignment and approval fields cannot restrict it", () => {
   let s = command(state(), "a", "task.create", {
     titleDe: "Zaun",
     titleEs: "Cerca",
@@ -211,18 +212,20 @@ test("staff tasks are proposals, cannot escalate permissions, and need manager a
     startDate: "2026-09-16",
     repeat: "weekly",
     twoPeople: true,
-    status: "active",
+    status: "proposed",
     createdBy: "boss",
   });
   const t = s.tasks.at(-1)!;
-  assert.equal(t.status, "proposed");
+  assert.equal(t.status, "active");
+  assert.equal(t.assignee, "");
   assert.equal(t.createdBy, "a");
-  assert.equal(occurs(t, "2026-09-16"), false);
-  assert.throws(
-    () => command(s, "a", "task.approve", { id: t.id }),
-    /forbidden/,
-  );
-  s = command(s, "boss", "task.approve", { id: t.id });
+  assert.equal(occurs(t, "2026-09-16"), true);
+  s = entry(s, "a", "creator-time", { taskId: t.id });
+  s = entry(s, "b", "colleague-time", { taskId: t.id });
+  s = entry(s, "boss", "manager-time", { taskId: t.id });
+  assert.equal(viewFor(s, "boss").totals[`${t.id}:2026-09-16`], 270);
+  assert.equal(viewFor(s, "a").entries.length, 1);
+  assert.equal(viewFor(s, "b").entries.length, 1);
   assert.equal(occurs(s.tasks.at(-1)!, "2026-09-23"), true);
 });
 test("recurrence respects anchor date, weekly cadence, month end and stop date", () => {
@@ -323,7 +326,7 @@ test("editing a task preserves recorded hours and historical titles", () => {
   const s = taskEdit(original);
   assert.equal(s.entries[0].minutes, 90);
   assert.equal(s.entries[0].taskTitleDe, "Stall");
-  assert.equal(s.tasks[0].assignee, "b");
+  assert.equal(s.tasks[0].assignee, "");
   assert.equal(s.tasks[0].budget, 100);
   assert.equal(s.tasks[0].repeat, "weekly");
   assert.equal(s.tasks[0].twoPeople, true);
@@ -347,13 +350,12 @@ test("metadata-only edits retain existing translations, changed source invalidat
   assert.equal(s.tasks[0].notesEs, "");
   assert.equal(s.tasks[0].translationStatus, "pending");
 });
-test("only managers edit active tasks; staff edit and delete only their own proposals", () => {
+test("staff edit and delete their own active tasks; managers can manage all tasks", () => {
   assert.throws(() => taskEdit(state(), "a"), /forbidden/);
   let s = state();
-  s.tasks[0].status = "proposed";
   s.tasks[0].createdBy = "a";
   s = taskEdit(s, "a");
-  assert.equal(s.tasks[0].status, "proposed");
+  assert.equal(s.tasks[0].status, "active");
   assert.throws(() => taskEdit(s, "b"), /forbidden/);
   assert.throws(
     () => command(s, "b", "task.delete", { id: "stall", reason: "No" }),
@@ -498,7 +500,7 @@ test("deleted profiles lose app access, preserve times and can be restored", () 
   assert.throws(() => entry(s, "a", "e2"), /forbidden/);
   assert.equal(s.entries[0].memberId, "a");
   assert.equal(s.tasks[0].assignee, "");
-  assert.throws(() => taskEdit(s, "boss", { assignee: "a" }), /invalidInput/);
+  assert.equal(taskEdit(s, "boss", { assignee: "a" }).tasks[0].assignee, "");
   s = command(s, "boss", "member.restore", { id: "a" });
   assert.equal(viewFor(s, "a").entries.length, 1);
 });
@@ -533,4 +535,71 @@ test("deleting a monthly report retains times and rejects stale approvals after 
       }),
     /conflict/,
   );
+});
+
+test("every role can create work without an assignee or approval fields", () => {
+  for (const actor of ["boss", "a", "b"]) {
+    const s = command(state(), actor, "task.create", {
+      title: "Gemeinsame Arbeit",
+      inputLang: "de",
+      notes: "",
+      category: "other",
+      budget: 45,
+      startDate: "2026-09-16",
+      repeat: "daily",
+      twoPeople: false,
+    });
+    const task = s.tasks.at(-1)!;
+    assert.equal(task.assignee, "");
+    assert.equal(task.status, "active");
+    assert.equal(task.createdBy, actor);
+    for (const member of ["boss", "a", "b"]) {
+      assert.ok(viewFor(s, member).tasks.some((t) => t.id === task.id));
+      assert.doesNotThrow(() =>
+        entry(s, member, `time-${member}`, { taskId: task.id }),
+      );
+    }
+  }
+});
+
+test("existing proposals and assignments become shared once without reopening deleted or ended work", () => {
+  const s = entry(state());
+  s.tasks[0].assignee = "a";
+  s.tasks.push(
+    {
+      ...s.tasks[0],
+      id: "proposal",
+      status: "proposed",
+      createdBy: "b",
+      version: 4,
+    },
+    { ...s.tasks[0], id: "deleted", status: "proposed", deletedAt: now },
+    { ...s.tasks[0], id: "ended", endDate: "2026-09-15" },
+  );
+  s.completions.push({ key: "stall:2026-09-16", by: "a", at: now });
+  const before = structuredClone(s);
+  assert.deepEqual(migrateSharedTasks(s), [
+    "stall",
+    "proposal",
+    "deleted",
+    "ended",
+  ]);
+  assert.ok(s.tasks.every((t) => t.assignee === "" && t.status === "active"));
+  assert.equal(s.tasks[1].version, 5);
+  assert.equal(s.tasks[0].version, 2);
+  assert.equal(occurs(s.tasks[1], "2026-09-16"), true);
+  assert.equal(occurs(s.tasks[2], "2026-09-16"), false);
+  assert.equal(occurs(s.tasks[3], "2026-09-16"), false);
+  assert.deepEqual(s.entries, before.entries);
+  assert.deepEqual(s.completions, before.completions);
+  assert.deepEqual(s.reports, before.reports);
+  assert.deepEqual(s.members, before.members);
+  assert.equal(s.tasks[1].budget, before.tasks[1].budget);
+  const upgraded = structuredClone(s);
+  assert.deepEqual(migrateSharedTasks(s), []);
+  assert.deepEqual(s, upgraded);
+  assert.doesNotThrow(() =>
+    entry(s, "b", "proposal-time", { taskId: "proposal" }),
+  );
+  assert.throws(() => taskEdit(s, "boss", { version: 1 }), /conflict/);
 });
